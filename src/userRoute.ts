@@ -1,5 +1,6 @@
 import express from 'express'
-import UserSchema, { User } from './models/user'
+import UserSchema, { StravaTokenResponse, User } from './models/user'
+import { refreshToken } from './utils/tokenFuncs';
 
 const router = express.Router()
 
@@ -7,18 +8,25 @@ const router = express.Router()
 router.get('/', async (req, res, next) => {
   const email = req.body.email
   const user: any = await UserSchema.findOne({email: email})
+  
   if(!user){
     res.status(200).json({access_token: false})
     return
   }
+  
   let currTime = Number(Date.now().toString().slice(0, 10))
-  let tokenExpiration = user.expires_at
-  if(currTime > tokenExpiration){
+  let tokenExpiration = Number(user.expires_at)
+  if(currTime < tokenExpiration){
     res.status(200).json({access_token: user.access_token})
     return
-  } else {
-    
-  }
+  } 
+
+  const newTokens: any = await refreshToken(user.refresh_token)
+  user.access_token = newTokens.access_token
+  user.expires_at = newTokens.expires_at
+  user.refresh_token = newTokens.refresh_token
+  user.save(user)
+  res.status(200).json({access_token: user.access_token})
 
   });
 
