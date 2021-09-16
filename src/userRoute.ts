@@ -36,7 +36,8 @@ router.post('/', async (req, res, next) => {
       email: req.body.email,
       access_token: req.body.access_token,
       expires_at: req.body.expires_at,
-      refresh_token: req.body.refresh_token
+      refresh_token: req.body.refresh_token,
+      athlete_info: req.body.athlete
     })
     user.save().then(data => {
       res.status(200).json(data)
